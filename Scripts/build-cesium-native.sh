@@ -1,9 +1,24 @@
 #!/bin/bash
 # Build cesium-native for Cesium for Unreal against UE 5.8 (Apple Silicon host).
+#
+# Paths are derived from the script's own location, so it works from any
+# checkout. Override with environment variables when needed:
+#   UNREAL_ENGINE_ROOT  Unreal Engine install dir (default: UE_5.8 under /Users/Shared)
+#   PLUGIN              plugin root (default: the parent of this Scripts/ dir)
 set -euo pipefail
 
-export UNREAL_ENGINE_ROOT='/Users/Shared/Epic Games/UE_5.8'
-PLUGIN="/Users/zach/Desktop/unrealcesium/cesium-unreal-samples/Plugins/cesium-unreal"
+# Resolve this script's real directory, following symlinks (it may be invoked
+# via a convenience symlink that points into the plugin repo).
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do
+  DIR="$(cd -P "$(dirname "$SOURCE")" >/dev/null 2>&1 && pwd)"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
+done
+SCRIPT_DIR="$(cd -P "$(dirname "$SOURCE")" >/dev/null 2>&1 && pwd)"
+
+export UNREAL_ENGINE_ROOT="${UNREAL_ENGINE_ROOT:-/Users/Shared/Epic Games/UE_5.8}"
+PLUGIN="${PLUGIN:-$(cd "$SCRIPT_DIR/.." && pwd)}"
 
 echo "=== UNREAL_ENGINE_ROOT: $UNREAL_ENGINE_ROOT"
 echo "=== Plugin: $PLUGIN"
