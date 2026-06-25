@@ -138,7 +138,8 @@ void showAssetDepotConfirmWindow(
       "assetdepot/" + std::to_string(missingAsset));
 
   // clang-format off
-  TSharedRef<SWindow> AssetDepotConfirmWindow =
+  TSharedPtr<SWindow> AssetDepotConfirmWindow;
+  AssetDepotConfirmWindow =
     SNew(SWindow)
       .Title(FText::FromString(TEXT("Asset is not available in My Assets")))
       .ClientSize(FVector2D(400.0f, 200.0f))
@@ -200,7 +201,7 @@ void showAssetDepotConfirmWindow(
           ]
       ];
   // clang-format on
-  GEditor->EditorAddModalWindow(AssetDepotConfirmWindow);
+  GEditor->EditorAddModalWindow(AssetDepotConfirmWindow.ToSharedRef());
 }
 } // namespace
 
