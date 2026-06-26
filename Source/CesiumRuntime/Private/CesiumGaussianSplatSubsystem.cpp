@@ -244,6 +244,13 @@ void UCesiumGaussianSplatSubsystem::Tick(float DeltaTime) {
     return;
   }
 
+  // During engine shutdown, world contexts can reference UWorlds that are
+  // already being torn down; resolving them here trips an invalid-index
+  // assertion in the UObject array. Stop ticking once exit is requested.
+  if (IsEngineExitRequested()) {
+    return;
+  }
+
   UWorld* pWorld = GetPrimaryWorld();
 
   if (!IsValid(pWorld)) {
@@ -303,7 +310,7 @@ bool UCesiumGaussianSplatSubsystem::IsTickableWhenPaused() const {
 bool UCesiumGaussianSplatSubsystem::IsTickableInEditor() const { return true; }
 
 bool UCesiumGaussianSplatSubsystem::IsTickable() const {
-  return this->_isTickEnabled;
+  return this->_isTickEnabled && !IsEngineExitRequested();
 }
 
 void UCesiumGaussianSplatSubsystem::reset() {
