@@ -74,6 +74,11 @@ private:
   void initializeForWorld(UWorld& InWorld);
   void makeInterfaceDirty(bool tilesOnly = false);
 
+  // Nulls our raw pointers into a world that is being torn down (PIE stop,
+  // level change, shutdown) before a later Tick can dereference them.
+  void onWorldCleanup(UWorld* World, bool bSessionEnded, bool bCleanupResources);
+  FDelegateHandle _worldCleanupHandle;
+
   UCesiumGaussianSplatDataInterface* getDataInterface() const;
 
   UNiagaraComponent* _pNiagaraComponent = nullptr;

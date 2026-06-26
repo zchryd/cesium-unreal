@@ -5,6 +5,7 @@
 #include "CesiumRuntime.h"
 
 #include "Engine/Engine.h"
+#include "Engine/World.h"
 #include "EngineUtils.h"
 #include "RHIGlobals.h"
 
@@ -117,16 +118,37 @@ void UCesiumGaussianSplatSubsystem::Initialize(
   // Because `Initialize` is never called on the CDO, we can use this as a
   // marker of whether we're in the *true* singleton instance of this subsystem.
   this->_isTickEnabled = true;
+
+  this->_worldCleanupHandle = FWorldDelegates::OnWorldCleanup.AddUObject(
+      this,
+      &UCesiumGaussianSplatSubsystem::onWorldCleanup);
 }
 
 void UCesiumGaussianSplatSubsystem::Deinitialize() {
   this->_isTickEnabled = false;
+
+  if (this->_worldCleanupHandle.IsValid()) {
+    FWorldDelegates::OnWorldCleanup.Remove(this->_worldCleanupHandle);
+    this->_worldCleanupHandle.Reset();
+  }
 
   if (IsValid(this->_pNiagaraActor)) {
     this->_pNiagaraActor->Destroy();
   }
 
   this->reset();
+}
+
+void UCesiumGaussianSplatSubsystem::onWorldCleanup(
+    UWorld* World,
+    bool bSessionEnded,
+    bool bCleanupResources) {
+  // When the world we spawned splat rendering into goes away (e.g. stopping
+  // PIE), our raw pointers into it become dangling. Drop them now so the next
+  // Tick doesn't resolve a freed UObject and trip an invalid-index assertion.
+  if (World == this->_pLastCreatedWorld) {
+    this->reset();
+  }
 }
 
 void UCesiumGaussianSplatSubsystem::RegisterSplat(
